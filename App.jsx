@@ -11,12 +11,12 @@ export default function AssemblyEndgame() {
     const [guessedLetters, setGuessedLetters] = useState([])
 
     // Derived values
-    const numGuessesLeft = languages.length - 1
     const wrongGuessCount =
-        guessedLetters.filter(letter => !currentWord.includes(letter)).length
+    guessedLetters.filter(letter => !currentWord.includes(letter)).length
+    const numGuessesLeft = (languages.length - wrongGuessCount) - 1
     const isGameWon =
         currentWord.split("").every(letter => guessedLetters.includes(letter))
-    const isGameLost = wrongGuessCount >= numGuessesLeft
+    const isGameLost = wrongGuessCount >= languages.length - 1 
     const isGameOver = isGameWon || isGameLost
     const lastGuessedLetter = guessedLetters[guessedLetters.length - 1]
     const isLastGuessIncorrect = lastGuessedLetter && !currentWord.includes(lastGuessedLetter)
@@ -150,6 +150,9 @@ export default function AssemblyEndgame() {
 
             <section className="language-chips">
                 {languageElements}
+            </section>
+            <section className="guesses-left">
+                <p>Attempts left: {numGuessesLeft}</p>
             </section>
 
             <section className="word">

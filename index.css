@@ -79,7 +79,6 @@ section.language-chips {
   gap: 5px;
   justify-content: center;
   max-width: 350px;
-  margin-bottom: 36px;
 }
 
 span.chip {
