@@ -52,6 +52,14 @@ export default function AssemblyEndgame() {
         function handleKeyDown(event) {
             if (event.metaKey || event.ctrlKey || event.altKey) return
 
+            if (isGameOver && event.key === "Enter") {
+                // Prevent a held Enter key from immediately restarting again.
+                if (event.repeat) return
+                event.preventDefault()
+                startNewGame()
+                return
+            }
+
             const letter = event.key.toLowerCase()
             if (!alphabet.includes(letter)) return
 
