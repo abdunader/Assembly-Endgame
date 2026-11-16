@@ -140,6 +140,10 @@ section.keyboard > button {
   border: 1px solid #d7d7d7;
   border-radius: 3px;
   cursor: pointer;
+  transition:
+    transform 100ms ease,
+    box-shadow 100ms ease,
+    filter 100ms ease;
 }
 
 section.keyboard > button.correct {
@@ -150,9 +154,43 @@ section.keyboard > button.wrong {
   background-color: #ec5d49;
 }
 
+/* Used for both physical keyboard input and pointer clicks. */
+section.keyboard > button.pressed,
+section.keyboard > button:active {
+  transform: translateY(2px) scale(0.94);
+  box-shadow: 0 0 0 3px rgba(249, 244, 218, 0.45);
+  filter: brightness(1.15);
+}
+
+section.keyboard > button.pressed {
+  animation: key-press 180ms ease-out;
+}
+
+@keyframes key-press {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(2px) scale(0.94);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
 section.keyboard > button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  section.keyboard > button {
+    transition: none;
+  }
+
+  section.keyboard > button.pressed {
+    animation: none;
+  }
 }
 
 button.new-game {

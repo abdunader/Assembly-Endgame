@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { clsx } from "clsx"
 import { languages } from "./languages"
 import { getFarewellText, getRandomWord } from "./utils"
@@ -9,6 +9,8 @@ export default function AssemblyEndgame() {
     // State values
     const [currentWord, setCurrentWord] = useState(() => getRandomWord())
     const [guessedLetters, setGuessedLetters] = useState([])
+    const [activeKey, setActiveKey] = useState(null)
+    const activeKeyTimeout = useRef(null)
 
     // Derived values
     const wrongGuessCount =
@@ -20,9 +22,23 @@ export default function AssemblyEndgame() {
     const isGameOver = isGameWon || isGameLost
     const lastGuessedLetter = guessedLetters[guessedLetters.length - 1]
     const isLastGuessIncorrect = lastGuessedLetter && !currentWord.includes(lastGuessedLetter)
+    const farewellMessage = useMemo(() => {
+        if (!isLastGuessIncorrect) return null
+
+        return getFarewellText(languages[wrongGuessCount - 1].name)
+    }, [isLastGuessIncorrect, wrongGuessCount])
 
     // Static values
     const alphabet = "abcdefghijklmnopqrstuvwxyz"
+
+    function showKeyPress(letter) {
+        window.clearTimeout(activeKeyTimeout.current)
+        // Include a unique id so repeated presses replay the animation.
+        setActiveKey({ letter, id: Date.now() })
+        activeKeyTimeout.current = window.setTimeout(() => {
+            setActiveKey(null)
+        }, 180)
+    }
 
     function addGuessedLetter(letter) {
         setGuessedLetters(prevLetters =>
@@ -31,6 +47,24 @@ export default function AssemblyEndgame() {
                 [...prevLetters, letter]
         )
     }
+
+    useEffect(() => {
+        function handleKeyDown(event) {
+            if (event.metaKey || event.ctrlKey || event.altKey) return
+
+            const letter = event.key.toLowerCase()
+            if (!alphabet.includes(letter)) return
+
+            showKeyPress(letter)
+            if (!isGameOver) addGuessedLetter(letter)
+        }
+
+        window.addEventListener("keydown", handleKeyDown)
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown)
+            window.clearTimeout(activeKeyTimeout.current)
+        }
+    }, [isGameOver])
 
     function startNewGame() {
         setCurrentWord(getRandomWord())
@@ -73,7 +107,8 @@ export default function AssemblyEndgame() {
         const isWrong = isGuessed && !currentWord.includes(letter)
         const className = clsx({
             correct: isCorrect,
-            wrong: isWrong
+            wrong: isWrong,
+            pressed: activeKey?.letter === letter
         })
 
         return (
@@ -83,6 +118,7 @@ export default function AssemblyEndgame() {
                 disabled={isGameOver}
                 aria-disabled={guessedLetters.includes(letter)}
                 aria-label={`Letter ${letter}`}
+                onPointerDown={() => showKeyPress(letter)}
                 onClick={() => addGuessedLetter(letter)}
             >
                 {letter.toUpperCase()}
@@ -100,7 +136,7 @@ export default function AssemblyEndgame() {
         if (!isGameOver && isLastGuessIncorrect) {
             return (
                 <p className="farewell-message">
-                    {getFarewellText(languages[wrongGuessCount - 1].name)}
+                    {farewellMessage}
                 </p>
             )
         }
